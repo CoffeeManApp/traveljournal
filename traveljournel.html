@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Travel Stash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+        
+        /* Animation utilities */
+        .animate-slide-up { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        .animate-fade-in { animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Prevent iOS zoom on inputs */
+        input, textarea { font-size: 16px !important; }
+
+        /* Platform colors */
+        .bg-xhs { background-color: #ff2442; }
+        .text-xhs { color: #ff2442; }
+        .bg-tiktok { background-color: #000000; }
+        .text-tiktok { color: #000000; }
+        
+        .modal-overlay { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+
+        /* Iframe Container */
+        .iframe-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #f9fafb;
+        }
+        .iframe-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+        /* Loader */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans h-screen overflow-hidden flex flex-col">
+
+    <!-- App Container -->
+    <div class="flex-1 flex flex-col max-w-md mx-auto w-full h-full bg-white shadow-xl relative overflow-hidden">
+        
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-100 p-4 flex justify-between items-center z-10 sticky top-0 h-16 shrink-0">
+            <div class="flex items-center gap-2">
+                <button id="backBtn" class="hidden p-2 -ml-2 rounded-full hover:bg-gray-100 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                <h1 id="headerTitle" class="text-xl font-bold tracking-tight text-gray-900">My Trips</h1>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto p-4 relative bg-gray-50" id="mainContainer">
+            
+            <!-- Destinations List View -->
+            <div id="destinationsView" class="space-y-4">
+                <div id="emptyStateDest" class="hidden flex flex-col items-center justify-center h-64 text-center p-6 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-4 opacity-50"><circle cx="12" cy="12" r="10"/><path d="M16.2 7.8 12 12l-4.2 4.2"/><path d="m7.8 7.8 8.4 8.4"/></svg>
+                    <p class="text-lg font-medium">No trips planned yet</p>
+                    <p class="text-sm">Add a destination to start saving posts.</p>
+                </div>
+                <div id="destinationsList" class="grid grid-cols-1 gap-3">
+                    <!-- Destinations injected here -->
+                </div>
+            </div>
+
+            <!-- Posts List View -->
+            <div id="postsView" class="hidden space-y-4 pb-20">
+                <div id="emptyStatePosts" class="hidden flex flex-col items-center justify-center h-64 text-center p-6 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-4 opacity-50"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    <p class="text-lg font-medium">No saved posts</p>
+                    <p class="text-sm">Paste a TikTok or XHS link to save it here.</p>
+                </div>
+                <div id="postsList" class="space-y-3">
+                    <!-- Posts injected here -->
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Floating Action Button -->
+        <button id="fab" class="absolute bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95 focus:outline-none z-20">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+        </button>
+
+    </div>
+
+    <!-- Viewer Modal (Full Screen) -->
+    <div id="viewerModal" class="fixed inset-0 z-[60] bg-white hidden flex flex-col animate-slide-up">
+        <!-- Viewer Header -->
+        <div class="bg-white border-b border-gray-200 p-3 flex justify-between items-center shadow-sm shrink-0">
+            <button id="closeViewerBtn" class="flex items-center gap-1 text-gray-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                <span class="font-medium text-sm">Back</span>
+            </button>
+            <div class="flex items-center gap-2">
+                 <span id="viewerPlatformBadge"></span>
+                 <a id="openExternalBtn" href="#" target="_blank" class="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full font-medium hover:bg-blue-100 flex items-center gap-1">
+                    Open App
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                 </a>
+            </div>
+        </div>
+        
+        <!-- Viewer Content -->
+        <div class="flex-1 bg-gray-100 relative iframe-container">
+            <div id="iframeLoader" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+                <div class="loader mb-4"></div>
+                <p class="text-sm">Loading content...</p>
+                <p class="text-xs mt-2 text-gray-400 max-w-[200px] text-center">If content stays blank, use the "Open App" button above.</p>
+            </div>
+            <iframe id="contentFrame" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <!-- Modal: Add Destination -->
+    <div id="addDestModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-center justify-center p-4 animate-fade-in">
+        <div class="bg-white rounded-2xl w-full max-w-xs p-6 shadow-2xl transform transition-all scale-100">
+            <h3 class="text-lg font-bold mb-4">New Destination</h3>
+            <input type="text" id="newDestName" placeholder="e.g. Tokyo, Japan" class="w-full border border-gray-300 rounded-lg px-4 py-3 mb-4 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-gray-50">
+            <div class="flex justify-end gap-2">
+                <button id="cancelDestBtn" class="px-4 py-2 text-gray-500 font-medium hover:bg-gray-100 rounded-lg">Cancel</button>
+                <button id="saveDestBtn" class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add Post -->
+    <div id="addPostModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
+        <div class="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-md p-6 shadow-2xl animate-slide-up sm:animate-none">
+            <h3 class="text-lg font-bold mb-4">Save Content</h3>
+            
+            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Link / Share Text</label>
+            <textarea id="postLink" placeholder="Paste XHS or TikTok link here..." class="w-full border border-gray-300 rounded-lg px-4 py-3 mb-4 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-gray-50 resize-none"></textarea>
+            
+            <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Note (Optional)</label>
+            <input type="text" id="postNote" placeholder="e.g. Best Ramen Spot" class="w-full border border-gray-300 rounded-lg px-4 py-3 mb-6 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-gray-50">
+            
+            <div class="flex justify-end gap-2">
+                <button id="cancelPostBtn" class="px-4 py-2 text-gray-500 font-medium hover:bg-gray-100 rounded-lg">Cancel</button>
+                <button id="savePostBtn" class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700">Save Post</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        let appData = JSON.parse(localStorage.getItem('travelStashDB')) || {
+            destinations: []
+        };
+        let currentDestIndex = null;
+
+        // --- DOM Elements ---
+        const viewDestinations = document.getElementById('destinationsView');
+        const viewPosts = document.getElementById('postsView');
+        const headerTitle = document.getElementById('headerTitle');
+        const backBtn = document.getElementById('backBtn');
+        const fab = document.getElementById('fab');
+        
+        // Modals
+        const addDestModal = document.getElementById('addDestModal');
+        const addPostModal = document.getElementById('addPostModal');
+        const viewerModal = document.getElementById('viewerModal');
+        
+        // Inputs
+        const newDestInput = document.getElementById('newDestName');
+        const postLinkInput = document.getElementById('postLink');
+        const postNoteInput = document.getElementById('postNote');
+
+        // Viewer Elements
+        const contentFrame = document.getElementById('contentFrame');
+        const openExternalBtn = document.getElementById('openExternalBtn');
+        const viewerPlatformBadge = document.getElementById('viewerPlatformBadge');
+
+        // --- Utility Functions ---
+        function saveData() {
+            localStorage.setItem('travelStashDB', JSON.stringify(appData));
+        }
+
+        function extractUrl(text) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const matches = text.match(urlRegex);
+            return matches ? matches[0] : text;
+        }
+
+        function detectPlatform(text) {
+            const lower = text.toLowerCase();
+            if (lower.includes('xiaohongshu') || lower.includes('xhslink')) return 'xhs';
+            if (lower.includes('tiktok')) return 'tiktok';
+            return 'other';
+        }
+
+        function getPlatformIcon(type) {
+            if (type === 'xhs') return `<span class="bg-xhs text-white text-[10px] font-bold px-2 py-0.5 rounded mr-2">XHS</span>`;
+            if (type === 'tiktok') return `<span class="bg-tiktok text-white text-[10px] font-bold px-2 py-0.5 rounded mr-2">TikTok</span>`;
+            return `<span class="bg-gray-500 text-white text-[10px] font-bold px-2 py-0.5 rounded mr-2">Link</span>`;
+        }
+
+        // --- Render Functions ---
+
+        function renderDestinations() {
+            const container = document.getElementById('destinationsList');
+            const emptyState = document.getElementById('emptyStateDest');
+            container.innerHTML = '';
+
+            if (appData.destinations.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            appData.destinations.forEach((dest, index) => {
+                const postCount = dest.posts.length;
+                const card = document.createElement('div');
+                card.className = 'bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex justify-between items-center cursor-pointer group';
+                card.innerHTML = `
+                    <div class="flex-1" onclick="openDestination(${index})">
+                        <h2 class="text-lg font-bold text-gray-800">${dest.name}</h2>
+                        <p class="text-sm text-gray-500 mt-1 flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                            ${postCount} saved items
+                        </p>
+                    </div>
+                    <button onclick="deleteDestination(event, ${index})" class="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderPosts() {
+            const container = document.getElementById('postsList');
+            const emptyState = document.getElementById('emptyStatePosts');
+            container.innerHTML = '';
+
+            const currentDest = appData.destinations[currentDestIndex];
+            
+            if (!currentDest || currentDest.posts.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            [...currentDest.posts].reverse().forEach((post, reverseIndex) => {
+                const originalIndex = currentDest.posts.length - 1 - reverseIndex;
+                const platform = detectPlatform(post.url);
+                const iconBadge = getPlatformIcon(platform);
+                const displayUrl = extractUrl(post.url);
+                const isUrl = displayUrl.startsWith('http');
+                
+                const item = document.createElement('div');
+                item.className = 'bg-white border border-gray-200 rounded-xl p-3 shadow-sm flex flex-col gap-2 relative group hover:border-blue-200 transition-colors';
+                
+                let mainContent = '';
+                if (isUrl) {
+                    mainContent = `
+                        <div onclick="openViewer('${displayUrl}', '${platform}')" class="cursor-pointer w-full pr-8">
+                             <div class="text-blue-600 font-medium text-sm truncate mb-0.5">${post.note ? post.note : 'View Post'}</div>
+                             <div class="text-xs text-gray-400 truncate">${displayUrl}</div>
+                        </div>
+                    `;
+                } else {
+                    mainContent = `<div class="text-gray-800 text-sm p-1">${post.url}</div>`;
+                }
+
+                item.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center overflow-hidden w-full">
+                            ${iconBadge}
+                            <div class="flex-1 overflow-hidden">
+                                ${mainContent}
+                            </div>
+                        </div>
+                        <button onclick="deletePost(${originalIndex})" class="ml-2 text-gray-300 hover:text-red-500 p-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // --- View Logic (The Magic) ---
+
+        function openViewer(url, platform) {
+            // 1. Prepare UI
+            viewerModal.classList.remove('hidden');
+            openExternalBtn.href = url;
+            viewerPlatformBadge.innerHTML = getPlatformIcon(platform);
+            
+            // 2. Determine Embed URL
+            let embedUrl = url;
+
+            // --- TikTok Embed Logic ---
+            // Converts standard tiktok video links to embed links which are cleaner
+            // e.g., https://www.tiktok.com/@user/video/12345 -> https://www.tiktok.com/embed/v2/12345
+            if (platform === 'tiktok') {
+                const videoIdMatch = url.match(/\/video\/(\d+)/);
+                if (videoIdMatch && videoIdMatch[1]) {
+                    embedUrl = `https://www.tiktok.com/embed/v2/${videoIdMatch[1]}`;
+                }
+            }
+
+            // --- XHS Logic ---
+            // XHS does not have a public embed API. We try the raw URL.
+            // If XHS blocks the iframe (X-Frame-Options), the user will see a gray screen
+            // and must use the "Open App" button. We can't detect this failure via JS due to security.
+            
+            contentFrame.src = embedUrl;
+        }
+
+        function closeViewer() {
+            viewerModal.classList.add('hidden');
+            contentFrame.src = 'about:blank'; // Stop video playback
+        }
+
+        // --- Logic & Navigation ---
+
+        function openDestination(index) {
+            currentDestIndex = index;
+            const dest = appData.destinations[index];
+            headerTitle.textContent = dest.name;
+            backBtn.classList.remove('hidden');
+            viewDestinations.classList.add('hidden');
+            viewPosts.classList.remove('hidden');
+            renderPosts();
+        }
+
+        function goBack() {
+            currentDestIndex = null;
+            headerTitle.textContent = "My Trips";
+            backBtn.classList.add('hidden');
+            viewPosts.classList.add('hidden');
+            viewDestinations.classList.remove('hidden');
+            renderDestinations();
+        }
+
+        function toggleModal(modalId, show) {
+            const modal = document.getElementById(modalId);
+            if (show) {
+                modal.classList.remove('hidden');
+                if(modalId === 'addDestModal') setTimeout(() => newDestInput.focus(), 100);
+                if(modalId === 'addPostModal') setTimeout(() => postLinkInput.focus(), 100);
+            } else {
+                modal.classList.add('hidden');
+                newDestInput.value = '';
+                postLinkInput.value = '';
+                postNoteInput.value = '';
+            }
+        }
+
+        // --- CRUD Operations ---
+
+        document.getElementById('saveDestBtn').addEventListener('click', () => {
+            const name = newDestInput.value.trim();
+            if (!name) return;
+            appData.destinations.push({ name: name, posts: [] });
+            saveData();
+            renderDestinations();
+            toggleModal('addDestModal', false);
+        });
+
+        function deleteDestination(e, index) {
+            e.stopPropagation();
+            if(confirm('Delete this trip and all saved links?')) {
+                appData.destinations.splice(index, 1);
+                saveData();
+                renderDestinations();
+            }
+        }
+
+        document.getElementById('savePostBtn').addEventListener('click', () => {
+            const rawText = postLinkInput.value.trim();
+            const note = postNoteInput.value.trim();
+            if (!rawText && !note) return;
+
+            const urlToSave = extractUrl(rawText) || rawText;
+
+            appData.destinations[currentDestIndex].posts.push({
+                url: urlToSave,
+                note: note,
+                timestamp: new Date().toISOString()
+            });
+
+            saveData();
+            renderPosts();
+            toggleModal('addPostModal', false);
+        });
+
+        function deletePost(postIndex) {
+            if(confirm('Remove this saved item?')) {
+                appData.destinations[currentDestIndex].posts.splice(postIndex, 1);
+                saveData();
+                renderPosts();
+            }
+        }
+
+        // --- Event Wiring ---
+
+        fab.addEventListener('click', () => {
+            if (currentDestIndex === null) toggleModal('addDestModal', true);
+            else toggleModal('addPostModal', true);
+        });
+
+        backBtn.addEventListener('click', goBack);
+        document.getElementById('closeViewerBtn').addEventListener('click', closeViewer);
+
+        document.getElementById('cancelDestBtn').addEventListener('click', () => toggleModal('addDestModal', false));
+        document.getElementById('cancelPostBtn').addEventListener('click', () => toggleModal('addPostModal', false));
+
+        [addDestModal, addPostModal].forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.add('hidden');
+            });
+        });
+
+        renderDestinations();
+
+    </script>
+</body>
+</html>
