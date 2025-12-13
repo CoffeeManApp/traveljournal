@@ -1,14 +1,14 @@
-CoffeeMan Travel Journal - Trip Link Organizer 迷你小程序
+CoffeeMan Travel Journal - Trip Link Organizer mini app
 
 A simple and beautiful web app designed to help you organize and save travel links and videos from multiple social media platforms. Built with HTML, Tailwind CSS, and JavaScript.
 
 🚀 Features
 
-✅ Create and manage multiple travel destinations/trips.
-✅ Save links from major platforms: YouTube, TikTok, Instagram, Facebook, and Xiaohongshu (XHS).
-✅ Preview saved videos (where embedding is supported).
-✅ Smart link fallback provides a direct link for restricted content (like YouTube's Error 153).
-✅ Stored locally in your browser (no account needed).
+✅ Create and manage multiple travel destinations/trips.  
+✅ Save links from major platforms: YouTube, TikTok, Instagram, Facebook, and Xiaohongshu (XHS).  
+✅ Preview saved videos (where embedding is supported).  
+✅ Smart link fallback provides a direct link for restricted content
+✅ Stored locally in your browser (no account needed).  
 
 📱 How to Use
 
@@ -34,25 +34,25 @@ If you clear browser cache or use another device, your data will be lost.
 
 🌐 The app link
 
-👉 Click here to use the app
+👉 [Click here to use the app](https://coffeemanapp.github.io/traveljournal/traveljournel.html)
 
 📲 Add to Home Screen (For Easy Access)
 
-You can install this app like a native app on your phone! Here's how:
-✅ For iPhone (iOS Safari): Open this app in Safari. Tap the Share button (the square with the arrow). Scroll down and tap Add to Home Screen. Tap Add in the top-right corner. This will place the Travel Stash App on your iPhone's home screen like a regular app.
-✅ For Android (Chrome or Edge): Open this app in Google Chrome or Microsoft Edge. Tap the three-dot menu in the top-right corner. Tap Add to Home screen. Confirm by tapping Add. Now you can access your saved links easily without opening your browser!
+You can install this app like a native app on your phone! Here's how:  
+✅ For iPhone (iOS Safari): Open this app in Safari. Tap the Share button (the square with the arrow). Scroll down and tap Add to Home   Screen. Tap Add in the top-right corner. This will place the Travel Stash App on your iPhone's home screen like a regular app.  
+✅ For Android (Chrome or Edge): Open this app in Google Chrome or Microsoft Edge. Tap the three-dot menu in the top-right corner. Tap Add to Home screen. Confirm by tapping Add. Now you can access your saved links easily without opening your browser!  
 
-旅行链接收藏夹 迷你小程序
+CoffeeMan旅行链接收藏夹 迷你小程序
 
 一个简单又美观的网页应用，帮你轻松整理和收藏来自多个社交媒体平台的旅行链接和视频。 基于 HTML、Tailwind CSS 和 JavaScript 开发。
 
 🚀 功能特点
 
-✅ 创建和管理多个旅行目的地/行程。
-✅ 收藏来自主流平台（YouTube、TikTok、Instagram、Facebook 和小红书）的链接到指定行程中。
-✅ 直接在应用内预览支持内嵌的内容（如 YouTube）。
-✅ 智能链接回退：对于限制播放的视频（如 YouTube Error 153），提供直接在原生应用中打开的链接。
-✅ 数据保存在你的浏览器本地（无需注册账号）。
+✅ 创建和管理多个旅行目的地/行程。  
+✅ 收藏来自主流平台（YouTube、TikTok、Instagram、Facebook 和小红书）的链接到指定行程中。  
+✅ 直接在应用内预览支持内嵌的内容（如 YouTube）。  
+✅ 智能链接回退：对于限制播放的视频，提供直接在原生应用中打开的链接。  
+✅ 数据保存在你的浏览器本地（无需注册账号）。  
 
 📱 使用方法
 
@@ -78,13 +78,13 @@ You can install this app like a native app on your phone! Here's how:
 
 🌐 应用链接
 
-👉 点击这里即可使用 (请替换为你的实际应用链接)
+👉 [点击这里即可使用](https://coffeemanapp.github.io/traveljournal/traveljournel.html)
 
 📲 添加到手机主屏幕（更方便访问）
 
-你可以像安装原生应用一样，把它装到手机桌面！方法如下：
-✅ iPhone（iOS Safari）： 在 Safari 打开应用。 点击底部的分享按钮（方框加箭头）。 往下滑选择“添加到主屏幕”。 右上角点击“添加”。 这样 Travel Stash App 就会出现在你的 iPhone 桌面啦。
-✅ Android（Chrome 或 Edge）： 在 Google Chrome 或 Microsoft Edge 打开应用。 点击右上角“三点”菜单。 选择“添加到主屏幕”。 点击“添加”确认。 现在你可以像用普通 App 一样快速打开链接收藏工具！
+你可以像安装原生应用一样，把它装到手机桌面！方法如下：  
+✅ iPhone（iOS Safari）： 在 Safari 打开应用。 点击底部的分享按钮（方框加箭头）。 往下滑选择“添加到主屏幕”。 右上角点击“添加”。 这样 Travel Stash App 就会出现在你的 iPhone 桌面啦。  
+✅ Android（Chrome 或 Edge）： 在 Google Chrome 或 Microsoft Edge 打开应用。 点击右上角“三点”菜单。 选择“添加到主屏幕”。 点击“添加”确认。 现在你可以像用普通 App 一样快速打开链接收藏工具！  
 
 🛠️ 技术栈
 
@@ -96,5 +96,5 @@ LocalStorage for offline data saving
 
 🧔 Author
 
-Created by @CoffeeManApp
-Donation: @Buymeacoffee
+Created by @CoffeeManApp  
+Donation: [@Buymeacoffee](http://buymeacoffee.com/coffeemantravel)
