@@ -34,7 +34,7 @@ If you clear browser cache or use another device, your data will be lost.
 
 🌐 The app link
 
-👉 Click here to use the app htmlhttps://github.com/CoffeeManApp/traveljournal/edit/main/README.md
+👉 Click here to use the app
 
 📲 Add to Home Screen (For Easy Access)
 
