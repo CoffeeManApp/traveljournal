@@ -11,14 +11,13 @@
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
         
-        /* Animation utilities */
-        .animate-slide-up { animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        
+        /* Animations */
         .animate-fade-in { animation: fadeIn 0.2s ease-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .animate-slide-up { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-        /* Prevent iOS zoom on inputs */
         input, textarea { font-size: 16px !important; }
 
         /* Platform colors */
@@ -26,35 +25,36 @@
         .text-xhs { color: #ff2442; }
         .bg-tiktok { background-color: #000000; }
         .text-tiktok { color: #000000; }
+        .bg-youtube { background-color: #ff0000; }
+        .bg-facebook { background-color: #1877f2; }
+        .bg-instagram { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
         
         .modal-overlay { background-color: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+        * { -webkit-tap-highlight-color: transparent; }
 
-        /* Iframe Container */
-        .iframe-container {
+        /* TikTok Embed Overrides */
+        blockquote.tiktok-embed {
+            margin: 0 !important;
+            min-width: unset !important;
+            max-width: unset !important;
+            width: 100% !important;
+            border: none !important;
+            padding: 0 !important;
+        }
+
+        /* Aspect Ratio for Videos (16:9) */
+        .aspect-16-9 {
             position: relative;
             width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: #f9fafb;
+            padding-bottom: 56.25%; /* (9 / 16) * 100% */
         }
-        .iframe-container iframe {
+        .aspect-16-9 iframe {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            border: 0;
         }
-        /* Loader */
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans h-screen overflow-hidden flex flex-col">
@@ -75,64 +75,48 @@
         <!-- Main Content Area -->
         <main class="flex-1 overflow-y-auto p-4 relative bg-gray-50" id="mainContainer">
             
-            <!-- Destinations List View -->
+            <!-- Destinations List -->
             <div id="destinationsView" class="space-y-4">
                 <div id="emptyStateDest" class="hidden flex flex-col items-center justify-center h-64 text-center p-6 text-gray-400">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-4 opacity-50"><circle cx="12" cy="12" r="10"/><path d="M16.2 7.8 12 12l-4.2 4.2"/><path d="m7.8 7.8 8.4 8.4"/></svg>
                     <p class="text-lg font-medium">No trips planned yet</p>
                     <p class="text-sm">Add a destination to start saving posts.</p>
                 </div>
-                <div id="destinationsList" class="grid grid-cols-1 gap-3">
-                    <!-- Destinations injected here -->
-                </div>
+                <div id="destinationsList" class="grid grid-cols-1 gap-3"></div>
             </div>
 
-            <!-- Posts List View -->
+            <!-- Posts List -->
             <div id="postsView" class="hidden space-y-4 pb-20">
                 <div id="emptyStatePosts" class="hidden flex flex-col items-center justify-center h-64 text-center p-6 text-gray-400">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-4 opacity-50"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                     <p class="text-lg font-medium">No saved posts</p>
-                    <p class="text-sm">Paste a TikTok or XHS link to save it here.</p>
+                    <p class="text-sm">Paste a link to save it here.</p>
                 </div>
-                <div id="postsList" class="space-y-3">
-                    <!-- Posts injected here -->
-                </div>
+                <div id="postsList" class="space-y-3"></div>
             </div>
 
         </main>
 
-        <!-- Floating Action Button -->
+        <!-- FAB -->
         <button id="fab" class="absolute bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg transition-transform hover:scale-105 active:scale-95 focus:outline-none z-20">
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
         </button>
 
     </div>
 
-    <!-- Viewer Modal (Full Screen) -->
+    <!-- Viewer Modal -->
     <div id="viewerModal" class="fixed inset-0 z-[60] bg-white hidden flex flex-col animate-slide-up">
-        <!-- Viewer Header -->
         <div class="bg-white border-b border-gray-200 p-3 flex justify-between items-center shadow-sm shrink-0">
             <button id="closeViewerBtn" class="flex items-center gap-1 text-gray-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                 <span class="font-medium text-sm">Back</span>
             </button>
-            <div class="flex items-center gap-2">
-                 <span id="viewerPlatformBadge"></span>
-                 <a id="openExternalBtn" href="#" target="_blank" class="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full font-medium hover:bg-blue-100 flex items-center gap-1">
-                    Open App
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                 </a>
-            </div>
+            <span id="viewerPlatformBadge"></span>
         </div>
         
-        <!-- Viewer Content -->
-        <div class="flex-1 bg-gray-100 relative iframe-container">
-            <div id="iframeLoader" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
-                <div class="loader mb-4"></div>
-                <p class="text-sm">Loading content...</p>
-                <p class="text-xs mt-2 text-gray-400 max-w-[200px] text-center">If content stays blank, use the "Open App" button above.</p>
-            </div>
-            <iframe id="contentFrame" sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        <!-- Embed Container - The background will change based on content (black for video, white/gray for card) -->
+        <div id="embedContainer" class="flex-1 bg-black relative overflow-y-auto flex flex-col items-center justify-center">
+            <!-- Dynamic Content Injected Here -->
         </div>
     </div>
 
@@ -152,25 +136,20 @@
     <div id="addPostModal" class="fixed inset-0 modal-overlay hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
         <div class="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-md p-6 shadow-2xl animate-slide-up sm:animate-none">
             <h3 class="text-lg font-bold mb-4">Save Content</h3>
-            
             <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Link / Share Text</label>
-            <textarea id="postLink" placeholder="Paste XHS or TikTok link here..." class="w-full border border-gray-300 rounded-lg px-4 py-3 mb-4 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-gray-50 resize-none"></textarea>
-            
+            <textarea id="postLink" placeholder="Paste link (TikTok, IG, FB, Youtube, XHS)..." class="w-full border border-gray-300 rounded-lg px-4 py-3 mb-4 h-24 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-gray-50 resize-none"></textarea>
             <label class="block text-xs font-semibold text-gray-500 uppercase mb-1">Note (Optional)</label>
-            <input type="text" id="postNote" placeholder="e.g. Best Ramen Spot" class="w-full border border-gray-300 rounded-lg px-4 py-3 mb-6 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-gray-50">
-            
+            <input type="text" id="postNote" placeholder="e.g. Must Visit!" class="w-full border border-gray-300 rounded-lg px-4 py-3 mb-6 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-gray-50">
             <div class="flex justify-end gap-2">
                 <button id="cancelPostBtn" class="px-4 py-2 text-gray-500 font-medium hover:bg-gray-100 rounded-lg">Cancel</button>
                 <button id="savePostBtn" class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700">Save Post</button>
             </div>
         </div>
     </div>
-
+    
     <script>
         // --- State Management ---
-        let appData = JSON.parse(localStorage.getItem('travelStashDB')) || {
-            destinations: []
-        };
+        let appData = JSON.parse(localStorage.getItem('travelStashDB')) || { destinations: [] };
         let currentDestIndex = null;
 
         // --- DOM Elements ---
@@ -180,26 +159,19 @@
         const backBtn = document.getElementById('backBtn');
         const fab = document.getElementById('fab');
         
-        // Modals
+        const viewerModal = document.getElementById('viewerModal');
+        const embedContainer = document.getElementById('embedContainer');
+        const viewerPlatformBadge = document.getElementById('viewerPlatformBadge');
+        
         const addDestModal = document.getElementById('addDestModal');
         const addPostModal = document.getElementById('addPostModal');
-        const viewerModal = document.getElementById('viewerModal');
-        
-        // Inputs
         const newDestInput = document.getElementById('newDestName');
         const postLinkInput = document.getElementById('postLink');
         const postNoteInput = document.getElementById('postNote');
 
-        // Viewer Elements
-        const contentFrame = document.getElementById('contentFrame');
-        const openExternalBtn = document.getElementById('openExternalBtn');
-        const viewerPlatformBadge = document.getElementById('viewerPlatformBadge');
-
         // --- Utility Functions ---
-        function saveData() {
-            localStorage.setItem('travelStashDB', JSON.stringify(appData));
-        }
-
+        function saveData() { localStorage.setItem('travelStashDB', JSON.stringify(appData)); }
+        
         function extractUrl(text) {
             const urlRegex = /(https?:\/\/[^\s]+)/g;
             const matches = text.match(urlRegex);
@@ -210,38 +182,201 @@
             const lower = text.toLowerCase();
             if (lower.includes('xiaohongshu') || lower.includes('xhslink')) return 'xhs';
             if (lower.includes('tiktok')) return 'tiktok';
+            if (lower.includes('youtube') || lower.includes('youtu.be')) return 'youtube';
+            if (lower.includes('facebook') || lower.includes('fb.watch')) return 'facebook';
+            if (lower.includes('instagram')) return 'instagram';
             return 'other';
         }
 
         function getPlatformIcon(type) {
             if (type === 'xhs') return `<span class="bg-xhs text-white text-[10px] font-bold px-2 py-0.5 rounded mr-2">XHS</span>`;
             if (type === 'tiktok') return `<span class="bg-tiktok text-white text-[10px] font-bold px-2 py-0.5 rounded mr-2">TikTok</span>`;
+            if (type === 'youtube') return `<span class="bg-youtube text-white text-[10px] font-bold px-2 py-0.5 rounded mr-2">YouTube</span>`;
+            if (type === 'facebook') return `<span class="bg-facebook text-white text-[10px] font-bold px-2 py-0.5 rounded mr-2">FB</span>`;
+            if (type === 'instagram') return `<span class="bg-instagram text-white text-[10px] font-bold px-2 py-0.5 rounded mr-2">IG</span>`;
             return `<span class="bg-gray-500 text-white text-[10px] font-bold px-2 py-0.5 rounded mr-2">Link</span>`;
         }
 
-        // --- Render Functions ---
+        function getSmartCard(url, platform, note) {
+             let colorClass = 'bg-gray-800';
+             let platformName = 'App';
+             
+             if(platform === 'xhs') { colorClass = 'bg-xhs'; platformName = 'Xiaohongshu'; }
+             else if(platform === 'tiktok') { colorClass = 'bg-tiktok'; platformName = 'TikTok'; }
+             else if(platform === 'instagram') { colorClass = 'bg-instagram'; platformName = 'Instagram'; }
+             else if(platform === 'facebook') { colorClass = 'bg-facebook'; platformName = 'Facebook'; }
+             else if(platform === 'youtube') { colorClass = 'bg-youtube'; platformName = 'YouTube'; }
+
+
+             // For Smart Card, we need a light background
+             embedContainer.classList.remove('bg-black');
+             embedContainer.classList.add('bg-gray-50');
+
+             return `
+                <div class="flex flex-col items-center justify-center h-full w-full max-w-sm px-4">
+                    <div class="bg-white p-6 rounded-2xl shadow-lg w-full text-center border border-gray-100">
+                        <div class="w-16 h-16 ${colorClass} rounded-2xl flex items-center justify-center mx-auto mb-4 text-white shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-1">${note || 'Saved Post'}</h3>
+                        <p class="text-sm text-gray-500 mb-6 break-all line-clamp-2">${url}</p>
+                        
+                        <a href="${url}" target="_blank" class="block w-full py-3 px-4 ${colorClass} text-white font-bold rounded-xl hover:opacity-90 transition-opacity mb-3">
+                            Open in ${platformName}
+                        </a>
+                        <p class="text-xs text-gray-400">
+                            Playback restricted. Click above to open.
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function extractYouTubeId(url) {
+            let videoId = '';
+            
+            // 1. Standard watch URL: ?v=
+            const watchMatch = url.match(/[?&]v=([^&]+)/);
+            if (watchMatch) videoId = watchMatch[1];
+            
+            // 2. Short URL: youtu.be/
+            if (!videoId) {
+                const shortMatch = url.match(/youtu\.be\/([^?&]+)/);
+                if (shortMatch) videoId = shortMatch[1];
+            }
+            
+            // 3. Shorts URL: /shorts/ or /live/
+            if (!videoId) {
+                const shortsMatch = url.match(/\/(shorts|live)\/([^?&]+)/);
+                if (shortsMatch) videoId = shortsMatch[2];
+            }
+
+            // 4. Embedded path: /embed/ or /v/ (robust check)
+            if (!videoId) {
+                const embedMatch = url.match(/\/(embed|v)\/([^?&]+)/);
+                if (embedMatch) videoId = embedMatch[2];
+            }
+
+            // Clean up the ID from potential extra params (e.g., &t=10s)
+            if (videoId) videoId = videoId.split('&')[0];
+            return videoId;
+        }
+
+
+        // --- Viewer Logic (The Engine) ---
+        
+        function openViewer(url, platform, note) {
+            viewerModal.classList.remove('hidden');
+            viewerPlatformBadge.innerHTML = getPlatformIcon(platform);
+            embedContainer.innerHTML = '<div class="text-white">Loading...</div>'; // Loading state
+            embedContainer.classList.remove('bg-white', 'bg-gray-50');
+            embedContainer.classList.add('bg-black');
+
+            // --- YOUTUBE ---
+            if (platform === 'youtube') {
+                const videoId = extractYouTubeId(url);
+                
+                if(videoId) {
+                    embedContainer.innerHTML = `
+                        <div class="w-full max-w-lg">
+                            <div class="aspect-16-9 shadow-2xl rounded-xl overflow-hidden mb-4">
+                                <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
+                                        frameborder="0" 
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                        allowfullscreen></iframe>
+                            </div>
+                        </div>
+                        <div class="text-center text-white text-sm px-4 pt-2">
+                             <p class="opacity-70">If you see an error (like Error 153), the video may be restricted by the creator or YouTube and cannot be embedded.</p>
+                             <a href="${url}" target="_blank" class="text-blue-400 font-medium hover:text-blue-300 transition-colors underline">Open video in YouTube app/browser</a>
+                        </div>
+                    `;
+                } else {
+                    embedContainer.innerHTML = getSmartCard(url, platform, note);
+                }
+            }
+            
+            // --- FACEBOOK ---
+            else if (platform === 'facebook') {
+                const encodedUrl = encodeURIComponent(url);
+                embedContainer.innerHTML = `
+                    <div class="w-full max-w-lg">
+                        <div class="aspect-16-9 bg-gray-900 shadow-2xl rounded-xl overflow-hidden">
+                            <iframe src="https://www.facebook.com/plugins/video.php?href=${encodedUrl}&show_text=0" 
+                                    style="border:none;overflow:hidden" 
+                                    scrolling="no" 
+                                    frameborder="0" 
+                                    allowfullscreen="true" 
+                                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" 
+                                    allowFullScreen="true"></iframe>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- TIKTOK ---
+            else if (platform === 'tiktok') {
+                embedContainer.classList.add('bg-white'); // TikTok embed looks better on white
+                
+                const videoIdMatch = url.match(/\/video\/(\d+)/);
+                
+                const blockquote = document.createElement('blockquote');
+                blockquote.className = 'tiktok-embed';
+                blockquote.setAttribute('cite', url);
+                blockquote.setAttribute('data-video-id', videoIdMatch ? videoIdMatch[1] : '');
+                blockquote.style.width = '100%';
+                blockquote.innerHTML = `<section>Loading TikTok...<p class="text-xs text-gray-400 mt-2">If video doesn't load, use the link below.</p></section>`;
+                
+                embedContainer.innerHTML = '';
+                embedContainer.appendChild(blockquote);
+
+                // Fallback Button
+                const fallbackDiv = document.createElement('div');
+                fallbackDiv.className = "w-full text-center pb-8";
+                fallbackDiv.innerHTML = `<a href="${url}" target="_blank" class="text-blue-500 text-sm font-medium underline">Not loading? Open in TikTok App</a>`;
+                embedContainer.appendChild(fallbackDiv);
+
+                // Reset Script
+                const oldScript = document.querySelector('script[src="https://www.tiktok.com/embed.js"]');
+                if (oldScript) oldScript.remove();
+                const script = document.createElement('script');
+                script.src = "https://www.tiktok.com/embed.js";
+                script.async = true;
+                document.body.appendChild(script);
+            }
+
+            // --- INSTAGRAM, XHS & OTHERS (Smart Card Launchers) ---
+            else {
+                embedContainer.innerHTML = getSmartCard(url, platform, note);
+            }
+        }
+
+        function closeViewer() {
+            viewerModal.classList.add('hidden');
+            embedContainer.innerHTML = ''; // Stop playback
+            embedContainer.classList.remove('bg-white', 'bg-gray-50'); 
+            embedContainer.classList.add('bg-black'); // Reset background to black for default video viewing
+        }
+
+        // --- Standard App Logic (Unchanged) ---
 
         function renderDestinations() {
             const container = document.getElementById('destinationsList');
             const emptyState = document.getElementById('emptyStateDest');
             container.innerHTML = '';
-
-            if (appData.destinations.length === 0) {
-                emptyState.classList.remove('hidden');
-                return;
-            }
+            if (appData.destinations.length === 0) { emptyState.classList.remove('hidden'); return; }
             emptyState.classList.add('hidden');
 
             appData.destinations.forEach((dest, index) => {
-                const postCount = dest.posts.length;
                 const card = document.createElement('div');
                 card.className = 'bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex justify-between items-center cursor-pointer group';
+                card.onclick = () => openDestination(index);
                 card.innerHTML = `
-                    <div class="flex-1" onclick="openDestination(${index})">
+                    <div class="flex-1">
                         <h2 class="text-lg font-bold text-gray-800">${dest.name}</h2>
                         <p class="text-sm text-gray-500 mt-1 flex items-center gap-1">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-                            ${postCount} saved items
+                            ${dest.posts.length} saved items
                         </p>
                     </div>
                     <button onclick="deleteDestination(event, ${index})" class="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors">
@@ -256,13 +391,9 @@
             const container = document.getElementById('postsList');
             const emptyState = document.getElementById('emptyStatePosts');
             container.innerHTML = '';
-
             const currentDest = appData.destinations[currentDestIndex];
             
-            if (!currentDest || currentDest.posts.length === 0) {
-                emptyState.classList.remove('hidden');
-                return;
-            }
+            if (!currentDest || currentDest.posts.length === 0) { emptyState.classList.remove('hidden'); return; }
             emptyState.classList.add('hidden');
 
             [...currentDest.posts].reverse().forEach((post, reverseIndex) => {
@@ -273,72 +404,34 @@
                 const isUrl = displayUrl.startsWith('http');
                 
                 const item = document.createElement('div');
-                item.className = 'bg-white border border-gray-200 rounded-xl p-3 shadow-sm flex flex-col gap-2 relative group hover:border-blue-200 transition-colors';
+                item.className = 'bg-white border border-gray-200 rounded-xl p-3 shadow-sm flex flex-col gap-2 relative';
                 
                 let mainContent = '';
                 if (isUrl) {
                     mainContent = `
-                        <div onclick="openViewer('${displayUrl}', '${platform}')" class="cursor-pointer w-full pr-8">
-                             <div class="text-blue-600 font-medium text-sm truncate mb-0.5">${post.note ? post.note : 'View Post'}</div>
+                        <div onclick="openViewer('${displayUrl}', '${platform}', '${post.note || ''}')" class="cursor-pointer w-full pr-8">
+                             <div class="text-blue-600 font-bold text-sm truncate mb-0.5">${post.note ? post.note : 'View Post'}</div>
                              <div class="text-xs text-gray-400 truncate">${displayUrl}</div>
                         </div>
                     `;
                 } else {
-                    mainContent = `<div class="text-gray-800 text-sm p-1">${post.url}</div>`;
+                    mainContent = `<div class="text-gray-800 text-sm p-1 select-all">${post.url}</div>`;
                 }
 
                 item.innerHTML = `
                     <div class="flex items-start justify-between">
-                        <div class="flex items-center overflow-hidden w-full">
+                        <div class="flex items-center overflow-hidden w-full gap-2">
                             ${iconBadge}
-                            <div class="flex-1 overflow-hidden">
-                                ${mainContent}
-                            </div>
+                            <div class="flex-1 overflow-hidden">${mainContent}</div>
                         </div>
-                        <button onclick="deletePost(${originalIndex})" class="ml-2 text-gray-300 hover:text-red-500 p-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        <button onclick="deletePost(${originalIndex})" class="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
                     </div>
                 `;
                 container.appendChild(item);
             });
         }
-
-        // --- View Logic (The Magic) ---
-
-        function openViewer(url, platform) {
-            // 1. Prepare UI
-            viewerModal.classList.remove('hidden');
-            openExternalBtn.href = url;
-            viewerPlatformBadge.innerHTML = getPlatformIcon(platform);
-            
-            // 2. Determine Embed URL
-            let embedUrl = url;
-
-            // --- TikTok Embed Logic ---
-            // Converts standard tiktok video links to embed links which are cleaner
-            // e.g., https://www.tiktok.com/@user/video/12345 -> https://www.tiktok.com/embed/v2/12345
-            if (platform === 'tiktok') {
-                const videoIdMatch = url.match(/\/video\/(\d+)/);
-                if (videoIdMatch && videoIdMatch[1]) {
-                    embedUrl = `https://www.tiktok.com/embed/v2/${videoIdMatch[1]}`;
-                }
-            }
-
-            // --- XHS Logic ---
-            // XHS does not have a public embed API. We try the raw URL.
-            // If XHS blocks the iframe (X-Frame-Options), the user will see a gray screen
-            // and must use the "Open App" button. We can't detect this failure via JS due to security.
-            
-            contentFrame.src = embedUrl;
-        }
-
-        function closeViewer() {
-            viewerModal.classList.add('hidden');
-            contentFrame.src = 'about:blank'; // Stop video playback
-        }
-
-        // --- Logic & Navigation ---
 
         function openDestination(index) {
             currentDestIndex = index;
@@ -373,8 +466,6 @@
             }
         }
 
-        // --- CRUD Operations ---
-
         document.getElementById('saveDestBtn').addEventListener('click', () => {
             const name = newDestInput.value.trim();
             if (!name) return;
@@ -386,7 +477,7 @@
 
         function deleteDestination(e, index) {
             e.stopPropagation();
-            if(confirm('Delete this trip and all saved links?')) {
+            if(confirm('Delete this trip?')) {
                 appData.destinations.splice(index, 1);
                 saveData();
                 renderDestinations();
@@ -397,29 +488,20 @@
             const rawText = postLinkInput.value.trim();
             const note = postNoteInput.value.trim();
             if (!rawText && !note) return;
-
             const urlToSave = extractUrl(rawText) || rawText;
-
-            appData.destinations[currentDestIndex].posts.push({
-                url: urlToSave,
-                note: note,
-                timestamp: new Date().toISOString()
-            });
-
+            appData.destinations[currentDestIndex].posts.push({ url: urlToSave, note: note });
             saveData();
             renderPosts();
             toggleModal('addPostModal', false);
         });
 
         function deletePost(postIndex) {
-            if(confirm('Remove this saved item?')) {
+            if(confirm('Remove item?')) {
                 appData.destinations[currentDestIndex].posts.splice(postIndex, 1);
                 saveData();
                 renderPosts();
             }
         }
-
-        // --- Event Wiring ---
 
         fab.addEventListener('click', () => {
             if (currentDestIndex === null) toggleModal('addDestModal', true);
@@ -428,18 +510,10 @@
 
         backBtn.addEventListener('click', goBack);
         document.getElementById('closeViewerBtn').addEventListener('click', closeViewer);
-
         document.getElementById('cancelDestBtn').addEventListener('click', () => toggleModal('addDestModal', false));
         document.getElementById('cancelPostBtn').addEventListener('click', () => toggleModal('addPostModal', false));
 
-        [addDestModal, addPostModal].forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) modal.classList.add('hidden');
-            });
-        });
-
         renderDestinations();
-
     </script>
 </body>
 </html>
