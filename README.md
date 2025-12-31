@@ -5,7 +5,7 @@ A simple and beautiful web app designed to help you organize and save travel lin
 🚀 Features
 
 ✅ Create and manage multiple travel destinations/trips.  
-✅ Save links from major platforms: YouTube, TikTok, Instagram, Facebook, and Xiaohongshu (XHS).  
+✅ Save links from major platforms: YouTube, TikTok, Instagram and Xiaohongshu (XHS).  
 ✅ Preview saved videos (where embedding is supported).  
 ✅ Smart link fallback provides a direct link for restricted content
 ✅ Stored locally in your browser (no account needed).  
@@ -49,7 +49,7 @@ CoffeeMan旅行链接收藏夹 迷你小程序
 🚀 功能特点
 
 ✅ 创建和管理多个旅行目的地/行程。  
-✅ 收藏来自主流平台（YouTube、TikTok、Instagram、Facebook 和小红书）的链接到指定行程中。  
+✅ 收藏来自主流平台（YouTube、TikTok、Instagram 和小红书）的链接到指定行程中。  
 ✅ 直接在应用内预览支持内嵌的内容（如 YouTube）。  
 ✅ 智能链接回退：对于限制播放的视频，提供直接在原生应用中打开的链接。  
 ✅ 数据保存在你的浏览器本地（无需注册账号）。  
