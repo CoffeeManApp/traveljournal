@@ -44,7 +44,7 @@ Open this app in Safari.
 Tap the Share button (the square with the arrow). 
 Scroll down and tap Add to Home Screen. 
 Tap Add in the top-right corner. 
-This will place the Travel Stash App on your iPhone's home screen like a regular app.  
+This will place the Travel Link Saver App on your iPhone's home screen like a regular app.  
 
 ✅ For Android (Chrome or Edge): 
 Open this app in Google Chrome or Microsoft Edge. 
