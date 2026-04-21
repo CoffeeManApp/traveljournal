@@ -99,17 +99,17 @@ Now you can access your saved links easily without opening your browser!
 ## 📲 添加到手机主屏幕（更方便访问）
 你可以像安装原生应用一样，把它装到手机桌面！方法如下：  
 
-✅ iPhone（iOS Safari）： 在 Safari 打开应用。 
+✅ iPhone（iOS Safari）： 在 Safari 打开应用。  
 点击底部的分享按钮（方框加箭头）。 
-往下滑选择“添加到主屏幕”。 
-右上角点击“添加”。 
-这样 Travel Link Saver 就会出现在你的 iPhone 桌面啦。  
+往下滑选择“添加到主屏幕”。  
+右上角点击“添加”。  
+这样 Travel Link Saver 就会出现在你的 iPhone 桌面啦。 
 
-✅ Android（Chrome 或 Edge）： 
-在 Google Chrome 或 Microsoft Edge 打开应用。 
-点击右上角“三点”菜单。 选择“添加到主屏幕”。 
-点击“添加”确认。 
-现在你可以像用普通 App 一样快速打开链接收藏工具！  
+✅ Android（Chrome 或 Edge）：  
+在 Google Chrome 或 Microsoft Edge 打开应用。  
+点击右上角“三点”菜单。 选择“添加到主屏幕”。  
+点击“添加”确认。  
+现在你可以像用普通 App 一样快速打开链接收藏工具！   
 
 ## 🛠️ 技术栈
 HTML, CSS, JavaScript
