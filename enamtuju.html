@@ -30,9 +30,11 @@ input{width:100%;border:0;outline:0;background:rgba(127,127,127,.16);color:var(-
 .end{width:auto;padding:12px 18px;background:#ff453a}#tl{margin-top:10px;padding:10px 12px;border-radius:16px;background:rgba(127,127,127,.14);font-weight:600;font-size:14px}
 .tm{background:#fff;color:#b45f00;font:700 12px -apple-system,sans-serif;padding:4px 8px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.25);white-space:nowrap}
 .car{width:40px;height:40px}
+#st{padding:6px 15px 6px 6px;gap:10px;border-radius:24px}#st b{font-size:15px;display:block;line-height:1.15;letter-spacing:.2px}#st small{font-size:11px;color:var(--mu);display:flex;align-items:center;gap:5px;font-weight:600}#st .dot{width:6px;height:6px;box-shadow:0 0 0 2px rgba(48,209,88,.25)}
+#loc{width:42px;height:42px;border-radius:50%;padding:0;font-size:17px;color:var(--ac)}
 </style></head><body><div id="app"><div id="map"></div>
-<div id="st" class="abs glass"><i class="dot"></i><span id="stt">Estimated traffic</span></div>
-<div id="ct" class="abs"><div id="seg" class="glass"><button id="b3" class="on" onclick="setM(1)">3D</button><button id="b2" onclick="setM(0)">2D</button></div></div>
+<div id="st" class="abs glass"><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3aa0ff"/><stop offset="1" stop-color="#0a4fd6"/></linearGradient></defs><rect width="34" height="34" rx="11" fill="url(#lg)"/><path d="M8 25c4-1 5-5 9-5s5 4 9 3" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="2" stroke-linecap="round"/><text x="17" y="19" text-anchor="middle" font-family="-apple-system,Segoe UI,sans-serif" font-weight="800" font-size="15" fill="#fff">67</text></svg><div><b>Enam Tuju</b><small><i class="dot"></i><span id="stt">Estimated traffic</span></small></div></div>
+<div id="ct" class="abs"><button id="loc" class="glass" onclick="locate()" aria-label="My location">➤</button><div id="seg" class="glass"><button id="b3" class="on" onclick="setM(1)">3D</button><button id="b2" onclick="setM(0)">2D</button></div></div>
 <div id="inst" class="abs glass"><div class="ar" id="ia">↑</div><div><b id="id">–</b><span id="in">–</span></div></div>
 <div id="toast" class="abs glass"></div><div id="sheet" class="abs glass"></div></div>
 <script>
@@ -49,7 +51,19 @@ const brg=(a,b)=>{const dl=(b[0]-a[0])*D2R,y=Math.sin(dl)*Math.cos(b[1]*D2R),x=M
 const fd=m=>m<950?Math.max(10,Math.round(m/10)*10)+' m':(m/1000).toFixed(1)+' km';
 const ang=(a,b,e)=>a+(((b-a+540)%360)-180)*e;
 let origin=[101.6869,3.1343],st='idle',m3=true,dest=null,rts=[],sel=0,cur=null,s=0,spd=0,carH=0,loop=0,last=0,tt,paid=0;
-if(navigator.geolocation)navigator.geolocation.getCurrentPosition(p=>{origin=[p.coords.longitude,p.coords.latitude]},()=>{},{timeout:4000});
+let gps=null,gid=null,mode='gps',gi=0,offN=0,rerouting=0;
+function gpsStart(){if(!navigator.geolocation)return toast('GPS is not supported on this device.');if(gid!=null)return;gid=navigator.geolocation.watchPosition(onGps,e=>toast(e.code==1?'Location is blocked. Allow it in your browser settings.':'GPS signal lost.'),{enableHighAccuracy:true,maximumAge:1000,timeout:15000})}
+function onGps(p){const c=p.coords,pt=[c.longitude,c.latitude],pv=gps;let h=pv?pv.h:0;if(c.heading!=null&&!isNaN(c.heading)&&c.speed>1)h=c.heading;else if(pv&&hav(pv.p,pt)>4)h=brg(pv.p,pt);
+ gps={p:pt,h,v:(c.speed||0)*3.6,acc:c.accuracy};$('#loc').style.color=c.accuracy<30?'#30d158':'#ff9f0a';
+ if(!pv&&st=='idle')map.flyTo({center:pt,zoom:13.5});
+ if(st=='nav'){if(mode=='gps')gpsNav()}else{origin=pt;car.setLngLat(pt).setRotation(h)}}
+function gpsNav(){const r=cur,pt=gps.p;let bi=gi,bd=1e9;for(let i=Math.max(0,gi-40);i<=Math.min(r.c.length-1,gi+400);i++){const d=hav(pt,r.c[i]);if(d<bd){bd=d;bi=i}}
+ if(bd>70){if(++offN>=3)reroute()}else{offN=0;gi=bi;s=r.cum[bi]}
+ spd=gps.v;car.setLngLat(pt).setRotation(gps.h);map.easeTo({center:pt,bearing:gps.h,pitch:m3?62:0,zoom:m3?17:16.3,duration:1000,easing:t=>t});
+ if(r.len-s<30){toast('You’ve arrived at '+dest.n);return stop()}hud(r)}
+async function reroute(){if(rerouting)return;rerouting=1;toast('Off route · rerouting…');try{const j=await(await fetch(`${OSRM}/route/v1/driving/${gps.p};${dest.c}?overview=full&geometries=geojson&steps=true`)).json();const n=prep(j.routes[0]);n.w=0;rts=[n];sel=0;cur=n;gi=0;s=0;offN=0;draw();tolls([n])}catch(e){toast('Could not reroute. Check your connection.')}rerouting=0}
+function locate(){gpsStart();if(gps)map.flyTo({center:gps.p,zoom:15,bearing:0,pitch:m3?50:0});else toast('Waiting for GPS signal…')}
+gpsStart();
 const map=new maplibregl.Map({container:'map',style:'https://tiles.openfreemap.org/styles/liberty',center:origin,zoom:11,pitch:50,attributionControl:{compact:true}});
 const carEl=document.createElement('div');carEl.className='car';carEl.innerHTML='<svg viewBox="0 0 40 40" width="40" height="40"><circle cx="20" cy="20" r="18" fill="rgba(10,132,255,.22)"/><path d="M20 6l11 26-11-6-11 6z" fill="#0a84ff" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/></svg>';
 const car=new maplibregl.Marker({element:carEl,rotationAlignment:'map',pitchAlignment:'map'}).setLngLat(origin).addTo(map);
@@ -80,7 +94,7 @@ const places=a=>a.map((d,i)=>`<div class="row" onclick="pick(${i})"><b class="ic
 let shown=PRE;
 function ui(){const sh=$('#sheet');
  if(st=='idle')sh.innerHTML=`<input id="q" placeholder="Where to in Malaysia?" oninput="srch(this.value)"><div id="ls">${places(shown)}</div>`;
- else if(st=='preview')sh.innerHTML=`<div class="hd"><button class="bk" onclick="back()" aria-label="Back">‹</button><div><div class="t1">${dest.n}</div><div class="t2">Traffic is estimated${TOMTOM_KEY?'':' · add a TomTom key for live data'}</div></div></div>`+rts.map((r,i)=>`<div class="card ${i==sel?'on':''}" onclick="pickR(${i})"><div><div class="t1">${i?'Alternative':'Fastest'}</div><div class="t2">${(r.len/1000).toFixed(1)} km</div></div><div class="r"><b>${Math.round(mins(r))} min</b>${r.tolls?`<span class="pill ${r.fee?'tl':'ok'}">${r.fee?'Toll ≈ RM '+r.fee.toFixed(2):'No tolls'}</span>`:'<span class="t2">Checking tolls…</span>'}</div></div>`).join('')+'<button class="go" onclick="start()">Start</button>';
+ else if(st=='preview')sh.innerHTML=`<div class="hd"><button class="bk" onclick="back()" aria-label="Back">‹</button><div><div class="t1">${dest.n}</div><div class="t2">Traffic is estimated${TOMTOM_KEY?'':' · add a TomTom key for live data'}</div></div></div>`+rts.map((r,i)=>`<div class="card ${i==sel?'on':''}" onclick="pickR(${i})"><div><div class="t1">${i?'Alternative':'Fastest'}</div><div class="t2">${(r.len/1000).toFixed(1)} km</div></div><div class="r"><b>${Math.round(mins(r))} min</b>${r.tolls?`<span class="pill ${r.fee?'tl':'ok'}">${r.fee?'Toll ≈ RM '+r.fee.toFixed(2):'No tolls'}</span>`:'<span class="t2">Checking tolls…</span>'}</div></div>`).join('')+'<button class="go" onclick="start(\'gps\')">Start with GPS</button><button class="go" style="background:rgba(127,127,127,.25);color:var(--tx)" onclick="start(\'demo\')">Demo drive</button>';
  else sh.innerHTML=`<div class="nv"><div><div class="big" id="eta">–</div><div class="t2" id="sub">–</div></div><div class="spd"><b id="spd">0</b><small>km/h</small></div><button class="end" onclick="stop()">End</button></div><div id="tl"></div>`}
 let sq;function srch(v){clearTimeout(sq);if(v.length<3){shown=PRE;$('#ls').innerHTML=places(shown);return}sq=setTimeout(async()=>{try{const j=await(await fetch('https://nominatim.openstreetmap.org/search?format=json&countrycodes=my&limit=6&q='+encodeURIComponent(v))).json();shown=j.map(x=>({n:x.display_name.split(',').slice(0,3).join(','),c:[+x.lon,+x.lat]}));$('#ls').innerHTML=places(shown)||'<div class="t2" style="padding:12px">No places found.</div>'}catch(e){toast('Search unavailable. Check your connection.')}},450)}
 async function pick(i){dest=shown[i];toast('Finding routes…');try{const j=await(await fetch(`${OSRM}/route/v1/driving/${origin};${dest.c}?alternatives=true&overview=full&geometries=geojson&steps=true`)).json();if(!j.routes)throw 0;rts=j.routes.slice(0,2).map(prep);sel=0;cur=rts[0];st='preview';draw();ui();tolls(rts)}catch(e){toast('No route found. Try another destination.')}}
@@ -88,7 +102,8 @@ function draw(){map.getSource('rt').setData(fc(cur));const o=rts[1-sel];map.getS
  if(st=='preview'){const b=cur.c.reduce((a,p)=>a.extend(p),new maplibregl.LngLatBounds(cur.c[0],cur.c[0]));map.fitBounds(b,{padding:{top:90,bottom:330,left:40,right:40},pitch:m3?40:0,bearing:0,duration:900})}car.setLngLat(origin);showTolls()}
 function pickR(i){sel=i;cur=rts[i];draw();ui()}
 function back(){st='idle';dest=null;rts=[];cur=null;clr();map.getSource('rt').setData({type:'FeatureCollection',features:[]});map.getSource('alt').setData({type:'FeatureCollection',features:[]});shown=PRE;ui()}
-function start(){st='nav';s=0;spd=0;paid=0;cur.w=0;$('#inst').style.display='flex';draw();ui();toast('Demo drive started · 3× speed');last=performance.now();loop=requestAnimationFrame(frame)}
+function start(m){if(m=='gps'&&!gps){gpsStart();return toast('Waiting for GPS signal. Try again in a moment.')}mode=m;st='nav';s=0;gi=0;offN=0;spd=0;paid=0;cur.w=0;$('#inst').style.display='flex';draw();ui();
+ if(m=='demo'){toast('Demo drive · 3× speed');last=performance.now();loop=requestAnimationFrame(frame)}else{toast('Navigating with GPS');gpsNav()}}
 function stop(){cancelAnimationFrame(loop);st='preview';$('#inst').style.display='none';draw();ui();map.easeTo({pitch:m3?40:0,bearing:0})}
 function setM(v){m3=!!v;$('#b3').classList.toggle('on',m3);$('#b2').classList.toggle('on',!m3);if(st=='idle')map.easeTo({pitch:m3?50:0})}
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),3200)}
@@ -99,14 +114,14 @@ function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;const r=cur,
  if(s>=r.len){toast('You’ve arrived at '+dest.n);return stop()}
  const p=at(r,s),n=at(r,Math.min(r.len,s+30)),hd=brg(p,n);carH=ang(carH,hd,1-Math.exp(-dt*6));car.setLngLat(p).setRotation(carH);
  map.jumpTo({center:p,bearing:carH,pitch:m3?62:0,zoom:m3?17:16.3});
- const rem=r.len-s,mn=mins(r)*rem/r.len,arr=new Date(Date.now()+mn*60000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+ hud(r);loop=requestAnimationFrame(frame)}
+function hud(r){const rem=r.len-s,mn=mins(r)*rem/r.len,arr=new Date(Date.now()+mn*60000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
  $('#eta').textContent=Math.max(1,Math.round(mn))+' min';$('#sub').textContent=arr+' · '+(rem/1000).toFixed(1)+' km';$('#spd').textContent=Math.round(spd);
  const nx=r.steps.find(x=>x.at>s+5)||r.steps[r.steps.length-1];$('#ia').textContent=arrow(nx.p.maneuver.modifier);$('#id').textContent=fd(Math.max(0,nx.at-s));$('#in').textContent=say(nx.p);
  const tl=r.tolls&&r.tolls.find(t=>t.s>s);const nt=r.tolls&&r.tolls.filter(t=>t.s<=s).length;
  if(r.tolls){if(nt>r.w){paid+=r.tolls[r.w].f;r.w=nt;toast('💳 Toll paid · RM '+r.tolls[nt-1].f.toFixed(2))}
   $('#tl').textContent=tl?(tl.s-s<400&&!tl.warned?(tl.warned=toast('💳 Toll plaza ahead · RM '+tl.f.toFixed(2)),''):'')+'💳 Next toll in '+fd(tl.s-s)+' · RM '+tl.f.toFixed(2):(r.fee?'✅ Tolls paid · RM '+paid.toFixed(2):'✅ No tolls on this route')}
- else $('#tl').textContent='Checking tolls…';
- loop=requestAnimationFrame(frame)}
+ else $('#tl').textContent='Checking tolls…'}
 setInterval(()=>{if(!cur)return;rts.forEach(r=>r.lv=r.lv.map(l=>Math.max(0,Math.min(1,l+(Math.random()-.5)*.25))));if(Math.random()<.15&&st!='idle'){const r=cur;r.lv[Math.floor(Math.random()*r.lv.length)]=.95;toast('🚗 Heavy traffic reported ahead')}
  if(map.getSource('rt'))map.getSource('rt').setData(fc(cur));if(st=='preview')ui()},3000);
 </script></body></html>
